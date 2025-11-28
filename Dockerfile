@@ -6,22 +6,23 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_pgsql pgsql zip gd
 
-# Habilitar mod_rewrite
+# Habilitar mod_rewrite do Apache
 RUN a2enmod rewrite
 
 # Copiar projeto
 WORKDIR /var/www/html
 COPY . /var/www/html
 
-# Apontar DocumentRoot
+# Apontar DocumentRoot para /public/
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
 
 # Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN composer install --no-dev --optimize-autoloader
 
-# Permissões
-RUN chown -R www-data:www-data storage bootstrap/cache
+# Permissões corretas
+RUN chmod -R 775 storage bootstrap/cache && \
+    chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80
 CMD ["apache2-foreground"]
