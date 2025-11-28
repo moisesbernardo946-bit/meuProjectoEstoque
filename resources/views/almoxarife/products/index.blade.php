@@ -70,8 +70,8 @@
                                 <td>{{ $product->unit?->symbol ?? $product->unit?->name }}</td>
                                 <td>{{ $product->zone?->name }}</td>
                                 <td class="text-center">
-                                    @if ($product->qr_code_path)
-                                        <a href="{{ asset('storage/' . $product->qr_code_path) }}" target="_blank" download>
+                                    @if ($product->qr_code_path && file_exists(public_path($product->qr_code_path)))
+                                        <a href="{{ asset($product->qr_code_path) }}" target="_blank" download>
                                             <i class="bi bi-qr-code-scan"></i>
                                         </a>
                                     @else

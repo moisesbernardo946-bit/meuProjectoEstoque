@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Support\Facades\File;
 
 class ProductController extends Controller
 {
@@ -24,7 +25,7 @@ class ProductController extends Controller
                 $query->where(function ($sub) use ($search) {
                     $sub->where('name', 'like', "%{$search}%")
                         ->orWhere('code', 'like', "%{$search}%")
-                        ->orWhereHas('category', fn ($c) => $c->where('name', 'like', "%{$search}%"));
+                        ->orWhereHas('category', fn($c) => $c->where('name', 'like', "%{$search}%"));
                 });
             })
             ->orderBy('id', 'desc')
@@ -44,8 +45,8 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::orderBy('name')->get();
-        $units      = Unit::orderBy('name')->get();
-        $zones      = Zone::orderBy('name')->get();
+        $units = Unit::orderBy('name')->get();
+        $zones = Zone::orderBy('name')->get();
 
         return view('almoxarife.products.create', compact('categories', 'units', 'zones'));
     }
@@ -53,15 +54,15 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'        => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
-            'unit_id'     => 'required|exists:units,id',
-            'measure'     => 'required|string|max:200',
-            'zone_id'     => 'required|exists:zones,id',
+            'unit_id' => 'required|exists:units,id',
+            'measure' => 'required|string|max:200',
+            'zone_id' => 'required|exists:zones,id',
         ]);
 
-        // Verifica duplicação (nome + unidade + medida)
+        // Verifica duplicação
         $exists = Product::whereRaw('LOWER(name) = ?', [strtolower($request->name)])
             ->where('unit_id', $request->unit_id)
             ->whereRaw('LOWER(measure) = ?', [strtolower($request->measure)])
@@ -76,22 +77,31 @@ class ProductController extends Controller
         $code = strtoupper(Str::random(10));
 
         $product = Product::create([
-            'name'        => $request->name,
-            'code'        => $code,
+            'name' => $request->name,
+            'code' => $code,
             'description' => $request->description,
             'category_id' => $request->category_id,
-            'unit_id'     => $request->unit_id,
-            'measure'     => $request->measure,
-            'zone_id'     => $request->zone_id,
+            'unit_id' => $request->unit_id,
+            'measure' => $request->measure,
+            'zone_id' => $request->zone_id,
         ]);
 
-        // Geração do QR Code
+        // GERA QR CODE
         $qrData = "Produto: {$product->name}\nCódigo: {$product->code}\nCategoria: {$product->category->name}\nMedida: {$product->measure}\nZona: {$product->zone->name}\nUnidade: {$product->unit->symbol}";
         $builder = new Builder(writer: new PngWriter(), data: $qrData, size: 250, margin: 10);
-        $result  = $builder->build();
+        $result = $builder->build();
 
-        $filePath = "qrcodes/{$product->code}_" . time() . ".png";
-        Storage::disk('public')->put($filePath, $result->getString());
+        // GARANTE A PASTA /public/qrcodes
+        $folder = public_path('qrcodes');
+        if (!File::exists($folder)) {
+            File::makeDirectory($folder, 0775, true);
+        }
+
+        // CAMINHO FINAL
+        $filePath = "qrcodes/{$product->code}.png";
+
+        file_put_contents(public_path($filePath), $result->getString());
+
         $product->update(['qr_code_path' => $filePath]);
 
         return redirect()
@@ -101,10 +111,10 @@ class ProductController extends Controller
 
     public function edit(int $id)
     {
-        $product    = Product::findOrFail($id);
+        $product = Product::findOrFail($id);
         $categories = Category::orderBy('name')->get();
-        $units      = Unit::orderBy('name')->get();
-        $zones      = Zone::orderBy('name')->get();
+        $units = Unit::orderBy('name')->get();
+        $zones = Zone::orderBy('name')->get();
 
         return view('almoxarife.products.edit', compact('product', 'categories', 'units', 'zones'));
     }
@@ -112,12 +122,12 @@ class ProductController extends Controller
     public function update(Request $request, int $id)
     {
         $request->validate([
-            'name'        => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
-            'unit_id'     => 'required|exists:units,id',
-            'measure'     => 'required|string|max:200',
-            'zone_id'     => 'required|exists:zones,id',
+            'unit_id' => 'required|exists:units,id',
+            'measure' => 'required|string|max:200',
+            'zone_id' => 'required|exists:zones,id',
         ]);
 
         $product = Product::findOrFail($id);
@@ -136,25 +146,28 @@ class ProductController extends Controller
         }
 
         $product->update([
-            'name'        => $request->name,
+            'name' => $request->name,
             'description' => $request->description,
             'category_id' => $request->category_id,
-            'unit_id'     => $request->unit_id,
-            'measure'     => $request->measure,
-            'zone_id'     => $request->zone_id,
+            'unit_id' => $request->unit_id,
+            'measure' => $request->measure,
+            'zone_id' => $request->zone_id,
         ]);
 
-        // Atualiza QR Code
+        // 🔥 Regenera o QR
         $qrData = "Produto: {$product->name}\nCódigo: {$product->code}\nCategoria: {$product->category->name}\nMedida: {$product->measure}\nZona: {$product->zone->name}\nUnidade: {$product->unit->symbol}";
         $builder = new Builder(writer: new PngWriter(), data: $qrData, size: 250, margin: 10);
-        $result  = $builder->build();
+        $result = $builder->build();
 
-        if ($product->qr_code_path && Storage::disk('public')->exists($product->qr_code_path)) {
-            Storage::disk('public')->delete($product->qr_code_path);
+        // Apaga o antigo
+        if ($product->qr_code_path && File::exists(public_path($product->qr_code_path))) {
+            File::delete(public_path($product->qr_code_path));
         }
 
-        $filePath = "qrcodes/{$product->code}_" . time() . ".png";
-        Storage::disk('public')->put($filePath, $result->getString());
+        // Salva o novo
+        $filePath = "qrcodes/{$product->code}.png";
+        file_put_contents(public_path($filePath), $result->getString());
+
         $product->update(['qr_code_path' => $filePath]);
 
         return redirect()
@@ -166,8 +179,8 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
-        if ($product->qr_code_path && Storage::disk('public')->exists($product->qr_code_path)) {
-            Storage::disk('public')->delete($product->qr_code_path);
+        if ($product->qr_code_path && File::exists(public_path($product->qr_code_path))) {
+            File::delete(public_path($product->qr_code_path));
         }
 
         $product->delete();
@@ -176,4 +189,5 @@ class ProductController extends Controller
             ->route('almoxarife.products.index')
             ->with('success', 'Produto removido com sucesso!');
     }
+
 }
