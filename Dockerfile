@@ -11,13 +11,13 @@ RUN apt-get update && apt-get install -y \
 # Habilitar mod_rewrite do Apache
 RUN a2enmod rewrite
 
-# Diretório de trabalho
+# Definir diretório de trabalho
 WORKDIR /var/www/html
 
 # Copiar todo o projeto
 COPY . /var/www/html
 
-# Configurar Apache para servir /public
+# Configurar o Apache para servir /public
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
 
 # Criar pasta de QR codes com permissão
@@ -35,8 +35,8 @@ RUN composer install --no-dev --optimize-autoloader
 RUN chmod -R 775 storage bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
 
-# Expõe porta 80
+# Expõe a porta 80
 EXPOSE 80
 
-# Iniciar Apache
+# Comando padrão para iniciar o Apache
 CMD ["apache2-foreground"]

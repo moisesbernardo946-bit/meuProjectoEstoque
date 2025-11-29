@@ -87,17 +87,18 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-
-                    @if($product->qr_code_path && file_exists(public_path($product->qr_code_path)))
+                    @if ($product->qr_code_path && file_exists(public_path($product->qr_code_path)))
                         <div class="col-12">
                             <label class="form-label">QR Code atual</label>
                             <div>
                                 <img src="{{ asset($product->qr_code_path) }}" alt="QR Code {{ $product->code }}"
                                     style="max-width: 150px;">
                             </div>
-                            <small class="text-muted">
-                                Ao salvar, o QR Code será atualizado com as novas informações.
-                            </small>
+                            <small class="text-muted">Ao salvar, o QR Code será atualizado com as novas informações.</small>
+                        </div>
+                    @else
+                        <div class="col-12">
+                            <p class="text-muted small">QR Code ainda não gerado.</p>
                         </div>
                     @endif
                 </div>
