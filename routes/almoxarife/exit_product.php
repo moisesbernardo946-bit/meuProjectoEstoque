@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Almoxarife\ExitProductController;
 
 Route::middleware(['auth', 'verified', 'role:almoxarife'])->group(function () {
+    
     Route::resource('almoxarife/exit_product', ExitProductController::class)
         ->names('almoxarife.exit_products');
 

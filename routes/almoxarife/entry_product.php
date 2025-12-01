@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Almoxarife\EntryProductController;
 
 Route::middleware(['auth', 'verified', 'role:almoxarife'])->group(function () {
+    
     Route::resource('almoxarife/entry_product', EntryProductController::class)
         ->names('almoxarife.entry_products');
 

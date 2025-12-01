@@ -7,6 +7,7 @@ use App\Models\EntityProduct;
 use App\Models\Product;
 use App\Models\Client;
 use App\Models\Company;
+
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 

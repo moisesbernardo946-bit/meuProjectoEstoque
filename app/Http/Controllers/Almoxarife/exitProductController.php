@@ -8,6 +8,7 @@ use App\Models\EntityProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\ExitProductsExport;
