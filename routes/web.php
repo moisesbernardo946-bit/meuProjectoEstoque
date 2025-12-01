@@ -35,3 +35,14 @@ foreach (glob(__DIR__ . '/financeiro/*.php') as $file) {
 foreach (glob(__DIR__ . '/motorista/*.php') as $file) {
     require $file;
 }
+
+
+Route::get('/debug-log', function () {
+    $logFile = storage_path('logs/laravel.log');
+
+    if (!file_exists($logFile)) {
+        return 'Log file not found.';
+    }
+
+    return nl2br(e(file_get_contents($logFile)));
+});
