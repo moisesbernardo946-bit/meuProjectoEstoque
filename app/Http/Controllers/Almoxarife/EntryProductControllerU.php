@@ -14,7 +14,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\EntryProductsExport;
 
-class EntryProductController extends Controller
+class EntryProductControllerU extends Controller
 {
     public function index(Request $request)
     {

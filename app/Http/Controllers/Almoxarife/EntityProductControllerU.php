@@ -11,7 +11,7 @@ use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-class EntityProductController extends Controller
+class EntityProductControllerU extends Controller
 {
     /**
      * Calcula o status dinâmico de um EntityProduct
