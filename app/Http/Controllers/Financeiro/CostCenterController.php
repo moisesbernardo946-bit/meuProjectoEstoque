@@ -135,15 +135,15 @@ class CostCenterController extends Controller
         $year = (int) ($request->get('year') ?: $currentYear);
         $month = $request->get('month'); // '01'..'12' ou null
 
+        // PostgreSQL usa EXTRACT
         $query = $costCenter->financialMovements()
-            ->whereYear('movement_date', $year);
+            ->whereRaw('EXTRACT(YEAR FROM movement_date) = ?', [$year]);
 
         if (!empty($month)) {
-            $query->whereMonth('movement_date', $month);
+            $query->whereRaw('EXTRACT(MONTH FROM movement_date) = ?', [(int) $month]);
         }
 
-        // agrupar por mês para montar visão mensal (caso queira ver o ano todo)
-        // mas também vamos calcular o agregado do período selecionado
+        // Movimentos filtrados
         $movements = (clone $query)->get();
 
         $receita = $movements->where('type', 'receita')->sum('amount');
@@ -153,17 +153,17 @@ class CostCenterController extends Controller
         $mgLiquida = $receita - $custos;
         $resultado = $mgLiquida - $despesas;
 
-        // visão mensal (para a tabela do ano inteiro)
-        $monthlySummary = (clone $costCenter->financialMovements())
-            ->whereYear('movement_date', $year)
-            ->selectRaw('
-            MONTH(movement_date) as month,
-            SUM(CASE WHEN type = "receita" THEN amount ELSE 0 END) as total_receita,
-            SUM(CASE WHEN type = "custo" THEN amount ELSE 0 END) as total_custo,
-            SUM(CASE WHEN type = "despesa" THEN amount ELSE 0 END) as total_despesa
-        ')
-            ->groupByRaw('MONTH(movement_date)')
-            ->orderByRaw('MONTH(movement_date)')
+        // Resumo mensal do ano
+        $monthlySummary = $costCenter->financialMovements()
+            ->whereRaw('EXTRACT(YEAR FROM movement_date) = ?', [$year])
+            ->selectRaw("
+            EXTRACT(MONTH FROM movement_date)::int as month,
+            SUM(CASE WHEN type = 'receita' THEN amount ELSE 0 END) as total_receita,
+            SUM(CASE WHEN type = 'custo' THEN amount ELSE 0 END) as total_custo,
+            SUM(CASE WHEN type = 'despesa' THEN amount ELSE 0 END) as total_despesa
+        ")
+            ->groupByRaw('EXTRACT(MONTH FROM movement_date)')
+            ->orderByRaw('EXTRACT(MONTH FROM movement_date)')
             ->get()
             ->map(function ($row) {
                 $mg = $row->total_receita - $row->total_custo;
@@ -179,9 +179,9 @@ class CostCenterController extends Controller
                 ];
             });
 
-        // para o filtro do select de anos
+        // ANOS DISPONÍVEIS
         $availableYears = FinancialMovement::where('cost_center_id', $costCenter->id)
-            ->selectRaw('DISTINCT YEAR(movement_date) as year')
+            ->selectRaw('DISTINCT EXTRACT(YEAR FROM movement_date)::int as year')
             ->orderBy('year', 'desc')
             ->pluck('year')
             ->toArray();
@@ -203,4 +203,5 @@ class CostCenterController extends Controller
             'availableYears'
         ));
     }
+
 }
