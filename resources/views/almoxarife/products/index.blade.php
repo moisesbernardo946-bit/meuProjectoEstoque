@@ -72,9 +72,10 @@
                                 <td>{{ $product->zone?->name }}</td>
                                 <td class="text-center">
                                     @if ($product->qr_code_path)
-                                        <img src="{{ asset($product->qr_code_path) }}" alt="QR">
-                                    @else
-                                        <span class="text-muted small">—</span>
+                                        <a href="{{ asset($product->qr_code_path) }}" target="_blank" download>
+                                            <i class="bi bi-qr-code-scan"></i>
+                                        @else
+                                            <span class="text-muted small">—</span>
                                     @endif
                                 </td>
                                 <td class="text-end">

@@ -89,7 +89,7 @@
                         @enderror
                     </div>
                     @if ($product->qr_code_path)
-                        <img src="{{ asset($product->qr_code_path) }}" alt="QR">
+                        <img src="{{ asset($product->qr_code_path) }}" alt="QR" style="max-width: 150px;">
                     @else
                         <span class="text-muted small">—</span>
                     @endif
