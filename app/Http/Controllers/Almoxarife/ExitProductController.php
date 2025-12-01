@@ -13,7 +13,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\ExitProductsExport;
 
-class ExitProductControllerU extends Controller
+class ExitProductController extends Controller
 {
     public function index(Request $request)
     {

@@ -1,11 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Almoxarife\EntityProductControllerU;
+use App\Http\Controllers\Almoxarife\EntityProductController;
 
 Route::middleware(['auth', 'verified', 'role:almoxarife'])->group(function () {
-
-    Route::resource('almoxarife/entity_product', EntityProductControllerU::class)
+    Route::resource('almoxarife/entity_product', EntityProductController::class)
         ->names('almoxarife.entity_products');
-
 });
