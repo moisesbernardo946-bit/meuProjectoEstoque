@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Almoxarife\unitController;
+use App\Http\Controllers\Almoxarife\UnitController;
 
 Route::middleware(['auth', 'verified', 'role:almoxarife'])->group(function () {
-    Route::resource('unit', unitController::class)
+    Route::resource('unit', UnitController::class)
         ->names('almoxarife.units');
 });
