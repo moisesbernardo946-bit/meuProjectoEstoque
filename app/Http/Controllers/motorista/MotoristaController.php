@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Motorista;
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseProgram;
 
-class MotoristaControllerM extends Controller
+class MotoristaController extends Controller
 {
     public function index()
     {
